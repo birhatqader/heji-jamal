@@ -1,4 +1,11 @@
-// Sample initial inventory data
+
+        // Admin credentials (in a real application, these would be securely stored and hashed)
+        const ADMIN_CREDENTIALS = {
+            username: "jamal",
+            password: "123"
+        };
+
+        // Sample initial inventory data
         let inventory = [
             { id: 1, name: "Wooden Chairs", quantity: 24, image: "https://images.unsplash.com/photo-1581539250439-c96689b516dd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
             { id: 2, name: "Office Desks", quantity: 15, image: "https://images.unsplash.com/photo-1505842381624-c6b0579625a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
@@ -12,6 +19,10 @@
         let sales = [];
 
         // DOM elements
+        const loginScreen = document.getElementById('loginScreen');
+        const appContainer = document.getElementById('appContainer');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
         const inventoryContainer = document.getElementById('inventory-container');
         const totalItemsElement = document.getElementById('total-items');
         const totalQuantityElement = document.getElementById('total-quantity');
@@ -22,6 +33,49 @@
         const salesHistoryElement = document.getElementById('sales-history');
         const notificationElement = document.getElementById('notification');
         const printSection = document.getElementById('print-section');
+
+        // Check if user is already logged in
+        function checkLoginStatus() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (isLoggedIn === 'true') {
+                showApp();
+            }
+        }
+
+        // Handle login form submission
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                // Successful login
+                localStorage.setItem('isLoggedIn', 'true');
+                showApp();
+            } else {
+                // Failed login
+                loginError.style.display = 'block';
+                setTimeout(() => {
+                    loginError.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Show the application
+        function showApp() {
+            loginScreen.style.display = 'none';
+            appContainer.style.display = 'flex';
+            initApp();
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            appContainer.style.display = 'none';
+            loginScreen.style.display = 'flex';
+            document.getElementById('loginForm').reset();
+        }
 
         // Initialize the application
         function initApp() {
@@ -597,4 +651,7 @@
         }
 
         // Initialize the app when the page loads
-        window.onload = initApp;
+        window.onload = function() {
+            loginForm.addEventListener('submit', handleLogin);
+            checkLoginStatus();
+        };
