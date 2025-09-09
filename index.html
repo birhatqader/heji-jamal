@@ -5,191 +5,223 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Storehouse Inventory Manager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="style.css">
+   
 </head>
 <body>
-    <header>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-form">
+            <div class="login-logo">
+                <i class="fas fa-warehouse"></i>
+            </div>
+            <h2>Inventory Management Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="Enter admin username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn-login">Login</button>
+            </form>
+            <div class="login-error" id="loginError">
+                Invalid username or password. Please try again.
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application (Initially Hidden) -->
+    <div class="app-container" id="appContainer">
+        <header>
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <i class="fas fa-warehouse"></i>
+                        <h1>heji jemal sardar</h1>
+                    </div>
+                    <div>
+                        <span id="current-date"></span>
+                        <button class="btn-logout no-print" onclick="logout()" style="margin-left: 15px;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
         <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-warehouse"></i>
-                    <h1>heji jemal sardar</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="total-items">0</div>
+                    <div class="stat-label">Total Items</div>
                 </div>
-                <div id="current-date"></div>
+                <div class="stat-item">
+                    <div class="stat-number" id="total-quantity">0</div>
+                    <div class="stat-label">Total Quantity</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="low-stock">0</div>
+                    <div class="stat-label">Low Stock Items</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="total-sales">0</div>
+                    <div class="stat-label">Total Sales</div>
+                </div>
             </div>
-        </div>
-    </header>
 
-    <div class="container">
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-number" id="total-items">0</div>
-                <div class="stat-label">Total Items</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="total-quantity">0</div>
-                <div class="stat-label">Total Quantity</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="low-stock">0</div>
-                <div class="stat-label">Low Stock Items</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="total-sales">0</div>
-                <div class="stat-label">Total Sales</div>
-            </div>
-        </div>
-
-        <div class="controls">
-            <button class="btn-primary no-print" onclick="openAddItemModal()">
-                <i class="fas fa-plus"></i> Add New Item
-            </button>
-            <button class="btn-success no-print" onclick="saveInventoryData()">
-                <i class="fas fa-save"></i> Save Data
-            </button>
-            <button class="btn-warning no-print" onclick="viewSalesHistory()">
-                <i class="fas fa-history"></i> Sales History
-            </button>
-            <button class="btn-primary no-print" onclick="printSalesReport()">
-                <i class="fas fa-print"></i> Print Report
-            </button>
-            <button class="btn-danger no-print" onclick="resetInventory()">
-                <i class="fas fa-trash"></i> Reset Inventory
-            </button>
-        </div>
-
-        <div class="inventory-grid" id="inventory-container">
-            <!-- Inventory items will be displayed here -->
-        </div>
-
-        <div class="sales-section">
-            <div class="sales-header">
-                <h2>Recent Sales</h2>
-                <button class="btn-primary no-print" onclick="viewSalesHistory()">View All</button>
-            </div>
-            <table class="sales-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Item</th>
-                        <th>Quantity Sold</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody id="recent-sales">
-                    <!-- Recent sales will be displayed here -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Add Item Modal -->
-    <div class="modal" id="addItemModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add New Item</h2>
-                <span class="close" onclick="closeAddItemModal()">&times;</span>
-            </div>
-            <form id="addItemForm" onsubmit="addNewItem(event)">
-                <div class="form-group">
-                    <label for="itemName">Item Name</label>
-                    <input type="text" class="form-control" id="itemName" required>
-                </div>
-                <div class="form-group">
-                    <label for="itemQuantity">Initial Quantity</label>
-                    <input type="number" class="form-control" id="itemQuantity" min="1" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Image Source</label>
-                    <div class="image-upload-options">
-                        <div class="image-option-btn active" data-option="url">URL</div>
-                        <div class="image-option-btn" data-option="upload">Upload</div>
-                    </div>
-                    
-                    <div class="image-source-panel active" id="url-panel">
-                        <input type="url" class="form-control" id="itemImage" placeholder="https://example.com/image.jpg" required>
-                    </div>
-                    
-                    <div class="image-source-panel" id="upload-panel">
-                        <input type="file" class="form-control" id="itemImageUpload" accept="image/*">
-                    </div>
-                    
-                    <img id="imagePreview" class="image-preview" alt="Image preview">
-                </div>
-                
-                <button type="submit" class="btn-primary">Add Item</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Sell Item Modal -->
-    <div class="modal" id="sellItemModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Sell Item</h2>
-                <span class="close" onclick="closeSellItemModal()">&times;</span>
-            </div>
-            <form id="sellItemForm" onsubmit="processSale(event)">
-                <div class="form-group">
-                    <label for="sellItemName">Item Name</label>
-                    <input type="text" class="form-control" id="sellItemName" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="sellItemQuantity">Available Quantity</label>
-                    <input type="number" class="form-control" id="sellItemQuantity" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="sellQuantity">Quantity to Sell</label>
-                    <input type="number" class="form-control" id="sellQuantity" min="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="sellNotes">Notes (Optional)</label>
-                    <textarea class="form-control" id="sellNotes" placeholder="Add any notes about this sale..."></textarea>
-                </div>
-                <input type="hidden" id="sellItemId">
-                <button type="submit" class="btn-success">Confirm Sale</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Sales History Modal -->
-    <div class="modal" id="salesHistoryModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Sales History</h2>
-                <span class="close" onclick="closeSalesHistoryModal()">&times;</span>
-            </div>
-            <div class="controls" style="margin-bottom: 20px;">
-                <button class="btn-primary no-print" onclick="printSalesHistory()">
-                    <i class="fas fa-print"></i> Print History
+            <div class="controls">
+                <button class="btn-primary no-print" onclick="openAddItemModal()">
+                    <i class="fas fa-plus"></i> Add New Item
                 </button>
-                <button class="btn-danger no-print" onclick="clearSalesHistory()">
-                    <i class="fas fa-trash"></i> Clear History
+                <button class="btn-success no-print" onclick="saveInventoryData()">
+                    <i class="fas fa-save"></i> Save Data
+                </button>
+                <button class="btn-warning no-print" onclick="viewSalesHistory()">
+                    <i class="fas fa-history"></i> Sales History
+                </button>
+                <button class="btn-primary no-print" onclick="printSalesReport()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+                <button class="btn-danger no-print" onclick="resetInventory()">
+                    <i class="fas fa-trash"></i> Reset Inventory
                 </button>
             </div>
-            <table class="sales-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Item</th>
-                        <th>Quantity Sold</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody id="sales-history">
-                    <!-- Sales history will be displayed here -->
-                </tbody>
-            </table>
+
+            <div class="inventory-grid" id="inventory-container">
+                <!-- Inventory items will be displayed here -->
+            </div>
+
+            <div class="sales-section">
+                <div class="sales-header">
+                    <h2>Recent Sales</h2>
+                    <button class="btn-primary no-print" onclick="viewSalesHistory()">View All</button>
+                </div>
+                <table class="sales-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Item</th>
+                            <th>Quantity Sold</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-sales">
+                        <!-- Recent sales will be displayed here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
+
+        <!-- Add Item Modal -->
+        <div class="modal" id="addItemModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Add New Item</h2>
+                    <span class="close" onclick="closeAddItemModal()">&times;</span>
+                </div>
+                <form id="addItemForm" onsubmit="addNewItem(event)">
+                    <div class="form-group">
+                        <label for="itemName">Item Name</label>
+                        <input type="text" class="form-control" id="itemName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemQuantity">Initial Quantity</label>
+                        <input type="number" class="form-control" id="itemQuantity" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Image Source</label>
+                        <div class="image-upload-options">
+                            <div class="image-option-btn active" data-option="url">URL</div>
+                            <div class="image-option-btn" data-option="upload">Upload</div>
+                        </div>
+                        
+                        <div class="image-source-panel active" id="url-panel">
+                            <input type="url" class="form-control" id="itemImage" placeholder="https://example.com/image.jpg" required>
+                        </div>
+                        
+                        <div class="image-source-panel" id="upload-panel">
+                            <input type="file" class="form-control" id="itemImageUpload" accept="image/*">
+                        </div>
+                        
+                        <img id="imagePreview" class="image-preview" alt="Image preview">
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Add Item</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sell Item Modal -->
+        <div class="modal" id="sellItemModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Sell Item</h2>
+                    <span class="close" onclick="closeSellItemModal()">&times;</span>
+                </div>
+                <form id="sellItemForm" onsubmit="processSale(event)">
+                    <div class="form-group">
+                        <label for="sellItemName">Item Name</label>
+                        <input type="text" class="form-control" id="sellItemName" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="sellItemQuantity">Available Quantity</label>
+                        <input type="number" class="form-control" id="sellItemQuantity" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="sellQuantity">Quantity to Sell</label>
+                        <input type="number" class="form-control" id="sellQuantity" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sellNotes">Notes (Optional)</label>
+                        <textarea class="form-control" id="sellNotes" placeholder="Add any notes about this sale..."></textarea>
+                    </div>
+                    <input type="hidden" id="sellItemId">
+                    <button type="submit" class="btn-success">Confirm Sale</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sales History Modal -->
+        <div class="modal" id="salesHistoryModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Sales History</h2>
+                    <span class="close" onclick="closeSalesHistoryModal()">&times;</span>
+                </div>
+                <div class="controls" style="margin-bottom: 20px;">
+                    <button class="btn-primary no-print" onclick="printSalesHistory()">
+                        <i class="fas fa-print"></i> Print History
+                    </button>
+                    <button class="btn-danger no-print" onclick="clearSalesHistory()">
+                        <i class="fas fa-trash"></i> Clear History
+                    </button>
+                </div>
+                <table class="sales-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Item</th>
+                            <th>Quantity Sold</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sales-history">
+                        <!-- Sales history will be displayed here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Print Section (Hidden) -->
+        <div id="print-section" class="print-section" style="display: none;"></div>
+
+        <!-- Notification -->
+        <div class="notification" id="notification"></div>
     </div>
 
-    <!-- Print Section (Hidden) -->
-    <div id="print-section" class="print-section" style="display: none;"></div>
-
-    <!-- Notification -->
-    <div class="notification" id="notification"></div>
-
-    <script src="javascript.js"></script>
+   
 </body>
 </html>
