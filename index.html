@@ -5,11 +5,572 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Storehouse Inventory Manager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-   
+    
+    <style>
+        /*
+        * The CSS from your original code is included here.
+        * It's already well-structured and responsive.
+        */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Login Screen Styles */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            padding: 20px;
+        }
+
+        .login-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .login-logo i {
+            font-size: 3rem;
+            color: #3498db;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background-color: #2980b9;
+        }
+
+        .login-error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Main App Styles (Initially Hidden) */
+        .app-container {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 10px 10px;
+            margin-bottom: 30px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #d35400;
+        }
+
+        .btn-logout {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background-color: #636e72;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .item-image {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .item-card:hover .item-image img {
+            transform: scale(1.05);
+        }
+
+        .item-details {
+            padding: 20px;
+        }
+
+        .item-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .item-quantity {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #7f8c8d;
+        }
+
+        .quantity-number {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .item-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sell-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .sell-input {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .stats {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px 20px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .sales-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-top: 30px;
+        }
+
+        .sales-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .sales-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .sales-table th, .sales-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .sales-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .sales-table tr:hover {
+            background-color: #f5f7fa;
+        }
+
+        .note-cell {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .note-cell:hover {
+            white-space: normal;
+            overflow: visible;
+            background-color: #f8f9fa;
+            z-index: 10;
+            position: relative;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1100;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .image-upload-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .image-option-btn {
+            flex: 1;
+            padding: 8px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .image-option-btn.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .image-source-panel {
+            display: none;
+        }
+
+        .image-source-panel.active {
+            display: block;
+        }
+
+        .image-preview {
+            margin-top: 10px;
+            max-width: 100%;
+            max-height: 200px;
+            display: none;
+        }
+
+        .image-preview.visible {
+            display: block;
+        }
+        
+        /* New CSS for mobile note display */
+        .note-cell-mobile {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+            
+            .inventory-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+
+            .sales-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .login-form {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .inventory-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .item-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .sell-form {
+                justify-content: space-between;
+            }
+            
+            .image-upload-options {
+                flex-direction: column;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .stat-item {
+                padding: 10px 0;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-section, .print-section * {
+                visibility: visible;
+            }
+            .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            
+            /* Hide buttons in print view */
+            .no-print {
+                display: none !important;
+            }
+            
+            /* Improve print layout */
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+            
+            .print-table th, .print-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            
+            .print-table th {
+                background-color: #f2f2f2;
+            }
+        }
+    </style>
+    
 </head>
 <body>
-    <!-- Login Screen -->
     <div class="login-container" id="loginScreen">
         <div class="login-form">
             <div class="login-logo">
@@ -33,14 +594,13 @@
         </div>
     </div>
 
-    <!-- Main Application (Initially Hidden) -->
     <div class="app-container" id="appContainer">
         <header>
             <div class="container">
                 <div class="header-content">
                     <div class="logo">
                         <i class="fas fa-warehouse"></i>
-                        <h1>heji jemal sardar</h1>
+                        <h1>Storehouse Manager</h1>
                     </div>
                     <div>
                         <span id="current-date"></span>
@@ -91,8 +651,7 @@
             </div>
 
             <div class="inventory-grid" id="inventory-container">
-                <!-- Inventory items will be displayed here -->
-            </div>
+                </div>
 
             <div class="sales-section">
                 <div class="sales-header">
@@ -109,13 +668,11 @@
                         </tr>
                     </thead>
                     <tbody id="recent-sales">
-                        <!-- Recent sales will be displayed here -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Add Item Modal -->
         <div class="modal" id="addItemModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -140,7 +697,7 @@
                         </div>
                         
                         <div class="image-source-panel active" id="url-panel">
-                            <input type="url" class="form-control" id="itemImage" placeholder="https://example.com/image.jpg" required>
+                            <input type="url" class="form-control" id="itemImage" placeholder="https://example.com/image.jpg">
                         </div>
                         
                         <div class="image-source-panel" id="upload-panel">
@@ -155,7 +712,6 @@
             </div>
         </div>
 
-        <!-- Sell Item Modal -->
         <div class="modal" id="sellItemModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -185,7 +741,6 @@
             </div>
         </div>
 
-        <!-- Sales History Modal -->
         <div class="modal" id="salesHistoryModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -210,20 +765,551 @@
                         </tr>
                     </thead>
                     <tbody id="sales-history">
-                        <!-- Sales history will be displayed here -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Print Section (Hidden) -->
         <div id="print-section" class="print-section" style="display: none;"></div>
 
-        <!-- Notification -->
         <div class="notification" id="notification"></div>
     </div>
-<script src="javascript.js"></script>
-   
+
+    <script>
+        // Admin credentials (in a real application, these would be securely stored and hashed)
+        const ADMIN_CREDENTIALS = {
+            username: "jamal",
+            password: "123"
+        };
+
+        const LOW_STOCK_THRESHOLD = 10;
+        let activeItemId = null;
+
+        // Sample initial inventory data
+        let inventory = [
+            { id: 1, name: "Wooden Chairs", quantity: 24, image: "https://images.unsplash.com/photo-1581539250439-c96689b516dd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+            { id: 2, name: "Office Desks", quantity: 15, image: "https://images.unsplash.com/photo-1505842381624-c6b0579625a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+            { id: 3, name: "Storage Boxes", quantity: 42, image: "https://images.unsplash.com/photo-1581101767113-167f2b6dcc55?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+            { id: 4, name: "LED Lamps", quantity: 37, image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+            { id: 5, name: "Bookshelves", quantity: 8, image: "https://images.unsplash.com/photo-1593085260707-5377ba37f868?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+            { id: 6, name: "Filing Cabinets", quantity: 12, image: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" }
+        ];
+
+        // Sales data
+        let sales = [];
+
+        // DOM elements
+        const loginScreen = document.getElementById('loginScreen');
+        const appContainer = document.getElementById('appContainer');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const inventoryContainer = document.getElementById('inventory-container');
+        const totalItemsElement = document.getElementById('total-items');
+        const totalQuantityElement = document.getElementById('total-quantity');
+        const lowStockElement = document.getElementById('low-stock');
+        const totalSalesElement = document.getElementById('total-sales');
+        const currentDateElement = document.getElementById('current-date');
+        const recentSalesElement = document.getElementById('recent-sales');
+        const salesHistoryElement = document.getElementById('sales-history');
+        const notificationElement = document.getElementById('notification');
+        const printSection = document.getElementById('print-section');
+        const addItemModal = document.getElementById('addItemModal');
+        const sellItemModal = document.getElementById('sellItemModal');
+        const salesHistoryModal = document.getElementById('salesHistoryModal');
+
+        // Check if user is already logged in
+        function checkLoginStatus() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (isLoggedIn === 'true') {
+                showApp();
+            }
+        }
+
+        // Handle login form submission
+        loginForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                // Successful login
+                localStorage.setItem('isLoggedIn', 'true');
+                showApp();
+            } else {
+                // Failed login
+                loginError.style.display = 'block';
+                setTimeout(() => {
+                    loginError.style.display = 'none';
+                }, 3000);
+            }
+        });
+
+        // Show the application
+        function showApp() {
+            loginScreen.style.display = 'none';
+            appContainer.style.display = 'flex';
+            initApp();
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            appContainer.style.display = 'none';
+            loginScreen.style.display = 'flex';
+            document.getElementById('loginForm').reset();
+        }
+
+        // Initialize the application
+        function initApp() {
+            // Load inventory from localStorage if available
+            const savedInventory = localStorage.getItem('inventory');
+            if (savedInventory) {
+                inventory = JSON.parse(savedInventory);
+            }
+            
+            // Load sales from localStorage if available
+            const savedSales = localStorage.getItem('sales');
+            if (savedSales) {
+                sales = JSON.parse(savedSales);
+            }
+            
+            // Display current date
+            const now = new Date();
+            currentDateElement.textContent = now.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            // Set up image upload options
+            setupImageUploadOptions();
+            
+            // Render inventory and update stats
+            renderInventory();
+            updateStats();
+            renderRecentSales();
+        }
+
+        // Set up image upload options
+        function setupImageUploadOptions() {
+            const optionButtons = document.querySelectorAll('.image-option-btn');
+            const urlPanel = document.getElementById('url-panel');
+            const uploadPanel = document.getElementById('upload-panel');
+            const urlInput = document.getElementById('itemImage');
+            const uploadInput = document.getElementById('itemImageUpload');
+            const preview = document.getElementById('imagePreview');
+            
+            // Handle option button clicks
+            optionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const option = button.getAttribute('data-option');
+                    
+                    // Toggle active class
+                    optionButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Show appropriate panel
+                    urlPanel.classList.remove('active');
+                    uploadPanel.classList.remove('active');
+                    
+                    if (option === 'url') {
+                        urlPanel.classList.add('active');
+                        urlInput.setAttribute('required', 'true');
+                        uploadInput.removeAttribute('required');
+                        uploadInput.value = ''; // Clear file input
+                    } else {
+                        uploadPanel.classList.add('active');
+                        uploadInput.setAttribute('required', 'true');
+                        urlInput.removeAttribute('required');
+                        urlInput.value = ''; // Clear url input
+                    }
+                    
+                    preview.classList.remove('visible');
+                    preview.src = '';
+                });
+            });
+            
+            // Handle URL input changes
+            urlInput.addEventListener('input', () => {
+                if (urlInput.value) {
+                    preview.src = urlInput.value;
+                    preview.classList.add('visible');
+                } else {
+                    preview.classList.remove('visible');
+                }
+            });
+            
+            // Handle file upload changes
+            uploadInput.addEventListener('change', () => {
+                const file = uploadInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.classList.add('visible');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.classList.remove('visible');
+                }
+            });
+        }
+
+        // Render inventory items
+        function renderInventory() {
+            inventoryContainer.innerHTML = '';
+            
+            if (inventory.length === 0) {
+                inventoryContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Your inventory is empty. Add a new item to get started!</p>';
+                return;
+            }
+
+            inventory.forEach(item => {
+                const itemCard = document.createElement('div');
+                itemCard.className = 'item-card';
+
+                const stockStatusClass = item.quantity <= LOW_STOCK_THRESHOLD ? 'low-stock-warning' : '';
+                
+                itemCard.innerHTML = `
+                    <div class="item-image">
+                        <img src="${item.image}" alt="${item.name}">
+                    </div>
+                    <div class="item-details">
+                        <h3 class="item-name">${item.name}</h3>
+                        <p class="item-quantity">Quantity: <span class="quantity-number ${stockStatusClass}">${item.quantity}</span></p>
+                        <div class="item-actions">
+                            <button class="btn-primary" onclick="openSellItemModal(${item.id})">
+                                <i class="fas fa-dollar-sign"></i> Sell
+                            </button>
+                            <button class="btn-danger" onclick="deleteItem(${item.id})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+                inventoryContainer.appendChild(itemCard);
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalItems = inventory.length;
+            const totalQuantity = inventory.reduce((sum, item) => sum + item.quantity, 0);
+            const lowStockCount = inventory.filter(item => item.quantity <= LOW_STOCK_THRESHOLD).length;
+            const totalSales = sales.reduce((sum, sale) => sum + sale.quantity, 0);
+
+            totalItemsElement.textContent = totalItems;
+            totalQuantityElement.textContent = totalQuantity;
+            lowStockElement.textContent = lowStockCount;
+            totalSalesElement.textContent = totalSales;
+        }
+
+        // Add a new item
+        function addNewItem(event) {
+            event.preventDefault();
+            
+            const itemName = document.getElementById('itemName').value;
+            const itemQuantity = parseInt(document.getElementById('itemQuantity').value);
+            
+            let imageUrl = '';
+            const urlInput = document.getElementById('itemImage');
+            const uploadInput = document.getElementById('itemImageUpload');
+            const isUrlActive = document.querySelector('.image-option-btn[data-option="url"]').classList.contains('active');
+
+            if (isUrlActive) {
+                imageUrl = urlInput.value;
+            } else {
+                const file = uploadInput.files[0];
+                if (file) {
+                    // Use a more permanent way to store the image if needed,
+                    // for this example, we'll use a data URL which is temporary.
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        imageUrl = reader.result;
+                        addItemToInventory(itemName, itemQuantity, imageUrl);
+                    };
+                    reader.readAsDataURL(file);
+                    return; // Exit here to wait for file reading
+                }
+            }
+
+            addItemToInventory(itemName, itemQuantity, imageUrl);
+        }
+
+        function addItemToInventory(name, quantity, image) {
+            const newItem = {
+                id: Date.now(), // Simple unique ID
+                name: name,
+                quantity: quantity,
+                image: image || "https://images.unsplash.com/photo-1517705008130-bbfe6532d085?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" // Default image
+            };
+            
+            inventory.push(newItem);
+            renderInventory();
+            updateStats();
+            saveInventoryData();
+            showNotification('New item added successfully!');
+            closeAddItemModal();
+            document.getElementById('addItemForm').reset();
+            document.getElementById('imagePreview').classList.remove('visible');
+        }
+
+        // Delete an item
+        function deleteItem(id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                inventory = inventory.filter(item => item.id !== id);
+                renderInventory();
+                updateStats();
+                saveInventoryData();
+                showNotification('Item deleted successfully!');
+            }
+        }
+
+        // Open sell item modal
+        function openSellItemModal(id) {
+            const item = inventory.find(i => i.id === id);
+            if (item) {
+                activeItemId = id;
+                document.getElementById('sellItemName').value = item.name;
+                document.getElementById('sellItemQuantity').value = item.quantity;
+                document.getElementById('sellItemId').value = id;
+                document.getElementById('sellQuantity').value = '';
+                document.getElementById('sellNotes').value = '';
+                sellItemModal.style.display = 'flex';
+            }
+        }
+
+        // Process a sale
+        function processSale(event) {
+            event.preventDefault();
+            
+            const itemId = parseInt(document.getElementById('sellItemId').value);
+            const sellQuantity = parseInt(document.getElementById('sellQuantity').value);
+            const sellNotes = document.getElementById('sellNotes').value;
+            const item = inventory.find(i => i.id === itemId);
+
+            if (item && sellQuantity > 0 && sellQuantity <= item.quantity) {
+                item.quantity -= sellQuantity;
+
+                // Add sale to history
+                const newSale = {
+                    date: new Date().toISOString(),
+                    itemId: item.id,
+                    itemName: item.name,
+                    quantity: sellQuantity,
+                    notes: sellNotes
+                };
+                sales.unshift(newSale); // Add to the beginning
+
+                renderInventory();
+                updateStats();
+                renderRecentSales();
+                saveInventoryData();
+                saveSalesData();
+                showNotification(`Sold ${sellQuantity} of ${item.name}!`);
+                closeSellItemModal();
+            } else if (sellQuantity > item.quantity) {
+                alert('Error: Not enough stock to complete the sale.');
+            } else {
+                alert('Error: Invalid quantity.');
+            }
+        }
+
+        // Save data to localStorage
+        function saveInventoryData() {
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+        }
+
+        function saveSalesData() {
+            localStorage.setItem('sales', JSON.stringify(sales));
+        }
+
+        // Reset all data
+        function resetInventory() {
+            if (confirm('Are you sure you want to reset the entire inventory? This action cannot be undone.')) {
+                localStorage.removeItem('inventory');
+                localStorage.removeItem('sales');
+                inventory = [
+                    { id: 1, name: "Wooden Chairs", quantity: 24, image: "https://images.unsplash.com/photo-1581539250439-c96689b516dd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+                    { id: 2, name: "Office Desks", quantity: 15, image: "https://images.unsplash.com/photo-1505842381624-c6b0579625a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+                    { id: 3, name: "Storage Boxes", quantity: 42, image: "https://images.unsplash.com/photo-1581101767113-167f2b6dcc55?ixlib=rb-4.0.3&auto=format&fit=600&q=80" },
+                    { id: 4, name: "LED Lamps", quantity: 37, image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+                    { id: 5, name: "Bookshelves", quantity: 8, image: "https://images.unsplash.com/photo-1593085260707-5377ba37f868?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+                    { id: 6, name: "Filing Cabinets", quantity: 12, image: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" }
+                ];
+                sales = [];
+                renderInventory();
+                updateStats();
+                renderRecentSales();
+                showNotification('Inventory has been reset!');
+            }
+        }
+
+        function createNoteCell(note) {
+            const cell = document.createElement('td');
+            if (note) {
+                const span = document.createElement('span');
+                span.className = 'note-cell';
+                span.title = note; // Full text on hover
+                span.textContent = note;
+                cell.appendChild(span);
+            } else {
+                cell.textContent = '-';
+            }
+            return cell;
+        }
+
+        // Render recent sales
+        function renderRecentSales() {
+            recentSalesElement.innerHTML = '';
+            const recent = sales.slice(0, 5); // Show only the 5 most recent sales
+            
+            if (recent.length === 0) {
+                recentSalesElement.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #7f8c8d;">No recent sales.</td></tr>';
+                return;
+            }
+
+            recent.forEach(sale => {
+                const row = document.createElement('tr');
+                const date = new Date(sale.date).toLocaleDateString('en-US', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+                row.innerHTML = `
+                    <td>${date}</td>
+                    <td>${sale.itemName}</td>
+                    <td>${sale.quantity}</td>
+                `;
+                row.appendChild(createNoteCell(sale.notes));
+                recentSalesElement.appendChild(row);
+            });
+        }
+
+        // View all sales history in modal
+        function viewSalesHistory() {
+            salesHistoryElement.innerHTML = '';
+            if (sales.length === 0) {
+                salesHistoryElement.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #7f8c8d;">No sales history available.</td></tr>';
+            } else {
+                sales.forEach(sale => {
+                    const row = document.createElement('tr');
+                    const date = new Date(sale.date).toLocaleString('en-US', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    });
+                    row.innerHTML = `
+                        <td>${date}</td>
+                        <td>${sale.itemName}</td>
+                        <td>${sale.quantity}</td>
+                    `;
+                    row.appendChild(createNoteCell(sale.notes));
+                    salesHistoryElement.appendChild(row);
+                });
+            }
+            salesHistoryModal.style.display = 'flex';
+        }
+
+        // Clear all sales history
+        function clearSalesHistory() {
+            if (confirm('Are you sure you want to clear all sales history? This action cannot be undone.')) {
+                sales = [];
+                saveSalesData();
+                updateStats();
+                renderRecentSales();
+                viewSalesHistory(); // Re-render the modal to show it's empty
+                showNotification('Sales history cleared!');
+            }
+        }
+
+        // Print sales report
+        function printSalesReport() {
+            printSection.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2>Inventory Report</h2>
+                    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                </div>
+                <h3>Current Stock</h3>
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${inventory.map(item => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td>${item.quantity}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <br>
+                <h3>Sales History</h3>
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Item</th>
+                            <th>Quantity Sold</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sales.map(sale => `
+                            <tr>
+                                <td>${new Date(sale.date).toLocaleDateString()}</td>
+                                <td>${sale.itemName}</td>
+                                <td>${sale.quantity}</td>
+                                <td>${sale.notes || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            printSection.style.display = 'block';
+            window.print();
+            printSection.style.display = 'none';
+        }
+
+        // Print sales history from modal
+        function printSalesHistory() {
+            const printContent = document.getElementById('salesHistoryModal').innerHTML;
+            const originalBody = document.body.innerHTML;
+            document.body.innerHTML = printContent;
+            window.print();
+            document.body.innerHTML = originalBody;
+            window.location.reload(); // Quick way to restore original page
+        }
+
+        // Helper functions for modals
+        function openAddItemModal() {
+            addItemModal.style.display = 'flex';
+        }
+        function closeAddItemModal() {
+            addItemModal.style.display = 'none';
+        }
+        function closeSellItemModal() {
+            sellItemModal.style.display = 'none';
+        }
+        function closeSalesHistoryModal() {
+            salesHistoryModal.style.display = 'none';
+        }
+
+        // Display a notification
+        function showNotification(message) {
+            notificationElement.textContent = message;
+            notificationElement.classList.add('show');
+            setTimeout(() => {
+                notificationElement.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initial app load
+        document.addEventListener('DOMContentLoaded', checkLoginStatus);
+
+    </script>
 </body>
 </html>
-
