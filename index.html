@@ -465,7 +465,7 @@
             max-width: 100%;
             max-height: 200px;
             display: none;
-            object-fit: contain; /* Added for better preview display */
+            object-fit: contain;
         }
 
         .image-preview.visible {
@@ -764,7 +764,7 @@
                         <i class="fas fa-trash"></i> Clear History
                     </button>
                 </div>
-                <table class="sales-table">
+                <table class="sales-table print-table">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -815,6 +815,31 @@
         const addItemModal = document.getElementById('addItemModal');
         const sellItemModal = document.getElementById('sellItemModal');
         const salesHistoryModal = document.getElementById('salesHistoryModal');
+        const addItemForm = document.getElementById('addItemForm');
+        const sellItemForm = document.getElementById('sellItemForm');
+
+        // Utility: Show a notification
+        function showNotification(message, isError = false) {
+            notificationElement.textContent = message;
+            notificationElement.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
+            notificationElement.classList.add('show');
+            setTimeout(() => {
+                notificationElement.classList.remove('show');
+            }, 3000);
+        }
+
+        // Utility: Save all data to local storage
+        function saveInventoryData() {
+            try {
+                localStorage.setItem('inventory', JSON.stringify(inventory));
+                localStorage.setItem('sales', JSON.stringify(sales));
+                localStorage.setItem('nextItemId', nextItemId.toString());
+                showNotification('Data saved successfully! 👍');
+            } catch (e) {
+                console.error("Error saving data to local storage:", e);
+                showNotification('Error saving data. Storage may be full.', true);
+            }
+        }
 
         // Check if user is already logged in
         function checkLoginStatus() {
@@ -874,7 +899,10 @@
                     { id: 5, name: "Bookshelves", quantity: 8, image: "https://images.unsplash.com/photo-1593085260707-5377ba37f868?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
                     { id: 6, name: "Filing Cabinets", quantity: 12, image: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" }
                 ];
-                if (inventory.length > 0) {
+                const savedNextItemId = localStorage.getItem('nextItemId');
+                if (savedNextItemId) {
+                    nextItemId = parseInt(savedNextItemId, 10);
+                } else if (inventory.length > 0) {
                     nextItemId = Math.max(...inventory.map(item => item.id)) + 1;
                 }
             } catch (e) {
@@ -933,13 +961,11 @@
                     
                     if (option === 'url') {
                         urlPanel.classList.add('active');
-                        urlInput.setAttribute('required', 'true');
-                        uploadInput.removeAttribute('required');
+                        // No 'required' attribute on URL, as it can be empty for later addition
                         uploadInput.value = ''; // Clear file input
                     } else {
                         uploadPanel.classList.add('active');
-                        uploadInput.setAttribute('required', 'true');
-                        urlInput.removeAttribute('required');
+                        // No 'required' attribute on file, as it can be empty for later addition
                         urlInput.value = ''; // Clear url input
                     }
                     
@@ -951,17 +977,21 @@
             // Handle URL input changes
             urlInput.addEventListener('input', () => {
                 preview.src = urlInput.value;
-                preview.onload = () => { // Show preview only after image has loaded
-                    preview.classList.add('visible');
-                };
-                preview.onerror = () => { // Hide preview on error
-                    preview.classList.remove('visible');
-                };
+                preview.classList.remove('visible');
+                if(urlInput.value) {
+                    preview.onload = () => { // Show preview only after image has loaded
+                        preview.classList.add('visible');
+                    };
+                    preview.onerror = () => { // Hide preview on error
+                        preview.classList.remove('visible');
+                    };
+                }
             });
             
             // Handle file upload changes
             uploadInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
+                preview.classList.remove('visible');
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
@@ -970,37 +1000,44 @@
                     };
                     reader.readAsDataURL(file);
                 } else {
-                    preview.classList.remove('visible');
+                    preview.src = '';
                 }
             });
-        } // The missing closing curly brace was here!
-
-        function showNotification(message, type = 'success') {
-            notificationElement.textContent = message;
-            notificationElement.style.backgroundColor = type === 'success' ? '#2ecc71' : '#e74c3c';
-            notificationElement.classList.add('show');
-            setTimeout(() => {
-                notificationElement.classList.remove('show');
-            }, 3000);
         }
 
-        // Render the inventory cards
+        // Render inventory items to the grid
         function renderInventory() {
-            inventoryContainer.innerHTML = '';
+            inventoryContainer.innerHTML = ''; // Clear existing cards
+
+            if (inventory.length === 0) {
+                inventoryContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Inventory is empty. Add a new item to get started!</p>';
+                return;
+            }
+
             inventory.forEach(item => {
+                const isLowStock = item.quantity <= LOW_STOCK_THRESHOLD;
                 const card = document.createElement('div');
-                card.className = item-card ${item.quantity <= LOW_STOCK_THRESHOLD ? 'low-stock-warning' : ''};
+                card.className = `item-card ${isLowStock ? 'low-stock-warning' : ''}`;
+                
                 card.innerHTML = `
                     <div class="item-image">
-                        <img src="${item.image}" alt="${item.name}">
+                        <img src="${item.image || 'https://via.placeholder.com/600x400?text=No+Image'}" alt="${item.name}">
                     </div>
                     <div class="item-details">
-                        <h3 class="item-name">${item.name}</h3>
-                        <p class="item-quantity">Quantity: <span class="quantity-number">${item.quantity}</span></p>
-                        <div class="item-actions">
-                            <button class="btn-success" onclick="openSellItemModal(${item.id})">Sell</button>
-                            <button class="btn-warning" onclick="openReceiveItemModal(${item.id})">Receive</button>
-                            <button class="btn-danger" onclick="deleteItem(${item.id})">Delete</button>
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-quantity">
+                            Stock: <span class="quantity-number">${item.quantity}</span> ${isLowStock ? '(Low Stock!)' : ''}
+                        </div>
+                        <div class="item-actions no-print">
+                            <form class="sell-form" onsubmit="event.preventDefault(); openSellItemModal(${item.id});">
+                                <input type="number" class="sell-input" min="1" max="${item.quantity}" placeholder="Qty" required>
+                                <button type="submit" class="btn-warning" ${item.quantity === 0 ? 'disabled' : ''}>
+                                    <i class="fas fa-cash-register"></i> Sell
+                                </button>
+                            </form>
+                            <button class="btn-danger" onclick="deleteItem(${item.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1008,334 +1045,310 @@
             });
         }
 
-        // Update the statistics
+        // Update the statistics panel
         function updateStats() {
-            const totalItems = inventory.length;
             const totalQuantity = inventory.reduce((sum, item) => sum + item.quantity, 0);
-            const lowStockCount = inventory.filter(item => item.quantity <= LOW_STOCK_THRESHOLD).length;
+            const lowStockItems = inventory.filter(item => item.quantity > 0 && item.quantity <= LOW_STOCK_THRESHOLD).length;
+            const totalSales = sales.reduce((sum, sale) => sum + sale.quantity, 0);
             
-            totalItemsElement.textContent = totalItems;
+            totalItemsElement.textContent = inventory.length;
             totalQuantityElement.textContent = totalQuantity;
-            lowStockElement.textContent = lowStockCount;
-            totalSalesElement.textContent = sales.reduce((sum, sale) => sum + sale.quantity, 0);
+            lowStockElement.textContent = lowStockItems;
+            totalSalesElement.textContent = totalSales;
         }
 
-        // Save inventory and sales data to local storage
-        function saveInventoryData() {
-            localStorage.setItem('inventory', JSON.stringify(inventory));
-            localStorage.setItem('sales', JSON.stringify(sales));
-            showNotification('Inventory data saved successfully! 💾');
-        }
-
-        // Open add item modal
-        function openAddItemModal() {
-            addItemModal.classList.add('active');
-            document.getElementById('addItemForm').reset();
-            const urlInput = document.getElementById('itemImage');
-            const uploadInput = document.getElementById('itemImageUpload');
-            const preview = document.getElementById('imagePreview');
-
-            // Resetting the form requires a bit more than just reset() for file inputs and previews
-            document.getElementById('itemImageUpload').value = null; // Clear file input
-            document.getElementById('imagePreview').src = '';
-            document.getElementById('imagePreview').classList.remove('visible');
-
-            // Ensure URL option is active by default
-            document.querySelectorAll('.image-option-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector('.image-option-btn[data-option="url"]').classList.add('active');
-            document.getElementById('url-panel').classList.add('active');
-            document.getElementById('upload-panel').classList.remove('active');
-            urlInput.setAttribute('required', 'true');
-            uploadInput.removeAttribute('required');
-        }
-
-        // Close add item modal
-        function closeAddItemModal() {
-            addItemModal.classList.remove('active');
-        }
-
-        // Open sell item modal
-        function openSellItemModal(id) {
-            const item = inventory.find(i => i.id === id);
-            if (item) {
-                activeItemId = id;
-                document.getElementById('sellItemName').value = item.name;
-                document.getElementById('sellItemQuantity').value = item.quantity;
-                document.getElementById('sellQuantity').max = item.quantity; // Set max quantity for sell
-                document.getElementById('sellItemModal').classList.add('active');
-            }
-        }
-
-        // Close sell item modal
-        function closeSellItemModal() {
-            sellItemModal.classList.remove('active');
-        }
-        
-        // Open receive item modal (simple function for this example)
-        function openReceiveItemModal(id) {
-            const item = inventory.find(i => i.id === id);
-            const quantity = parseInt(prompt(How many units of "${item.name}" are you receiving?, "10"));
-            if (quantity && quantity > 0) {
-                receiveItem(id, quantity);
-            }
-        }
-        
-        // Handle add item form submission
-        document.getElementById('addItemForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            
-            const name = document.getElementById('itemName').value;
-            const quantity = parseInt(document.getElementById('itemQuantity').value);
-            const urlInput = document.getElementById('itemImage');
-            const uploadInput = document.getElementById('itemImageUpload');
-
-            let imageUrl = '';
-            if (document.querySelector('.image-option-btn[data-option="url"]').classList.contains('active')) {
-                imageUrl = urlInput.value;
-            } else {
-                // Get image data from file input
-                const file = uploadInput.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const base64Image = e.target.result;
-                        addItem(name, quantity, base64Image);
-                    };
-                    reader.readAsDataURL(file);
-                    return; // Exit early to wait for file reader
-                }
-            }
-
-            addItem(name, quantity, imageUrl);
-        });
-
-        // Add an item to the inventory
-        function addItem(name, quantity, image) {
-            const newItem = {
-                id: nextItemId++,
-                name: name,
-                quantity: quantity,
-                image: image || 'https://via.placeholder.com/200' // Placeholder if no image provided
-            };
-            inventory.push(newItem);
-            saveInventoryData();
-            renderInventory();
-            updateStats();
-            closeAddItemModal();
-            showNotification(${name} added to inventory! 🎉);
-        }
-
-        // Handle sell item form submission
-        document.getElementById('sellItemForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const quantityToSell = parseInt(document.getElementById('sellQuantity').value);
-            const notes = document.getElementById('sellNotes').value;
-            sellItem(activeItemId, quantityToSell, notes);
-        });
-
-        // Sell an item
-        function sellItem(id, quantityToSell, notes = '') {
-            const item = inventory.find(i => i.id === id);
-            if (item && item.quantity >= quantityToSell) {
-                item.quantity -= quantityToSell;
-                sales.unshift({
-                    item: item.name,
-                    quantity: quantityToSell,
-                    date: new Date().toISOString(),
-                    notes: notes
-                });
-                saveInventoryData();
-                renderInventory();
-                renderRecentSales();
-                updateStats();
-                closeSellItemModal();
-                showNotification(Sold ${quantityToSell} of ${item.name}! 💰);
-            } else {
-                showNotification('Not enough stock!', 'error');
-            }
-        }
-
-        // Receive new stock
-        function receiveItem(id, quantityToReceive) {
-            const item = inventory.find(i => i.id === id);
-            if (item && quantityToReceive > 0) {
-                item.quantity += quantityToReceive;
-                saveInventoryData();
-                renderInventory();
-                updateStats();
-                showNotification(Received ${quantityToReceive} of ${item.name}!);
-            }
-        }
-
-        // Delete an item
-        function deleteItem(id) {
-            if (confirm("Are you sure you want to delete this item?")) {
-                inventory = inventory.filter(item => item.id !== id);
-                saveInventoryData();
-                renderInventory();
-                updateStats();
-                showNotification('Item deleted successfully!', 'success');
-            }
-        }
-
-        // Render recent sales
+        // Render recent sales in the main app view
         function renderRecentSales() {
             recentSalesElement.innerHTML = '';
-            sales.slice(0, 5).forEach(sale => { // Show only the 5 most recent sales
+            // Display the 5 most recent sales
+            const recentSales = sales.slice(-5).reverse(); 
+
+            if (recentSales.length === 0) {
+                recentSalesElement.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #7f8c8d;">No recent sales yet.</td></tr>';
+                return;
+            }
+
+            recentSales.forEach(sale => {
+                const item = inventory.find(i => i.id === sale.itemId);
+                const itemName = item ? item.name : 'Unknown Item';
+                const date = new Date(sale.date).toLocaleString();
+
                 const row = document.createElement('tr');
-                const formattedDate = new Date(sale.date).toLocaleDateString();
                 row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${sale.item}</td>
+                    <td>${date}</td>
+                    <td>${itemName}</td>
                     <td>${sale.quantity}</td>
-                    <td>
-                        <div class="note-cell note-cell-mobile" title="${sale.notes}">${sale.notes}</div>
-                    </td>
+                    <td class="note-cell" title="${sale.notes || 'No notes'}">${sale.notes || '-'}</td>
                 `;
                 recentSalesElement.appendChild(row);
             });
         }
 
-        // View sales history modal
-        function viewSalesHistory() {
-            salesHistoryModal.classList.add('active');
+        // Render full sales history in the modal
+        function renderSalesHistory() {
             salesHistoryElement.innerHTML = '';
-            sales.forEach(sale => {
+            const allSales = sales.slice().reverse(); // Show newest first
+
+            if (allSales.length === 0) {
+                salesHistoryElement.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #7f8c8d;">No sales history available.</td></tr>';
+                return;
+            }
+
+            allSales.forEach(sale => {
+                const item = inventory.find(i => i.id === sale.itemId);
+                const itemName = item ? item.name : 'Unknown Item (ID: ' + sale.itemId + ')';
+                const date = new Date(sale.date).toLocaleString();
+
                 const row = document.createElement('tr');
-                const formattedDate = new Date(sale.date).toLocaleDateString();
                 row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${sale.item}</td>
+                    <td>${date}</td>
+                    <td>${itemName}</td>
                     <td>${sale.quantity}</td>
-                    <td>
-                        <div class="note-cell note-cell-mobile" title="${sale.notes}">${sale.notes}</div>
-                    </td>
+                    <td class="note-cell" title="${sale.notes || 'No notes'}">${sale.notes || '-'}</td>
                 `;
                 salesHistoryElement.appendChild(row);
             });
         }
 
-        // Close sales history modal
+        // --- CRUD/App Logic ---
+
+        // Modal Functions
+        function openAddItemModal() {
+            document.getElementById('addItemForm').reset();
+            document.getElementById('imagePreview').classList.remove('visible');
+            addItemModal.classList.add('active');
+        }
+
+        function closeAddItemModal() {
+            addItemModal.classList.remove('active');
+        }
+
+        function openSellItemModal(itemId) {
+            const item = inventory.find(i => i.id === itemId);
+            if (!item) return;
+            
+            activeItemId = itemId;
+            document.getElementById('sellItemForm').reset();
+            document.getElementById('sellItemId').value = itemId;
+            document.getElementById('sellItemName').value = item.name;
+            document.getElementById('sellItemQuantity').value = item.quantity;
+            document.getElementById('sellQuantity').setAttribute('max', item.quantity);
+
+            sellItemModal.classList.add('active');
+        }
+
+        function closeSellItemModal() {
+            sellItemModal.classList.remove('active');
+            activeItemId = null;
+        }
+
+        function viewSalesHistory() {
+            renderSalesHistory();
+            salesHistoryModal.classList.add('active');
+        }
+
         function closeSalesHistoryModal() {
             salesHistoryModal.classList.remove('active');
         }
 
-        // Clear sales history
-        function clearSalesHistory() {
-            if (confirm("Are you sure you want to clear the entire sales history? This action cannot be undone.")) {
-                sales = [];
-                saveInventoryData();
-                renderRecentSales();
+        // Handle Add Item Form Submission
+        addItemForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            
+            const itemName = document.getElementById('itemName').value;
+            const itemQuantity = parseInt(document.getElementById('itemQuantity').value);
+            const urlInput = document.getElementById('itemImage');
+            const uploadInput = document.getElementById('itemImageUpload');
+            
+            let itemImage = '';
+            const activeOption = document.querySelector('.image-option-btn.active').getAttribute('data-option');
+
+            if (activeOption === 'url') {
+                itemImage = urlInput.value;
+            } else if (activeOption === 'upload') {
+                // Use the image preview src, which holds the Base64 data if a file was selected
+                itemImage = document.getElementById('imagePreview').src;
+            }
+            
+            if (!itemImage) {
+                 itemImage = 'https://via.placeholder.com/600x400?text=No+Image'; // Fallback
+            }
+
+            const newItem = {
+                id: nextItemId++,
+                name: itemName,
+                quantity: itemQuantity,
+                image: itemImage
+            };
+
+            inventory.push(newItem);
+            
+            renderInventory();
+            updateStats();
+            saveInventoryData();
+            showNotification(`Added new item: ${itemName}`);
+            closeAddItemModal();
+        });
+
+        // Handle Sell Item Form Submission
+        sellItemForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const itemId = parseInt(document.getElementById('sellItemId').value);
+            const sellQuantity = parseInt(document.getElementById('sellQuantity').value);
+            const sellNotes = document.getElementById('sellNotes').value.trim();
+
+            const itemIndex = inventory.findIndex(item => item.id === itemId);
+
+            if (itemIndex === -1) {
+                showNotification('Error: Item not found.', true);
+                return;
+            }
+
+            const item = inventory[itemIndex];
+
+            if (sellQuantity > item.quantity) {
+                showNotification(`Cannot sell ${sellQuantity}. Only ${item.quantity} available.`, true);
+                return;
+            }
+
+            // Update inventory
+            item.quantity -= sellQuantity;
+
+            // Record sale
+            const newSale = {
+                itemId: item.id,
+                name: item.name,
+                quantity: sellQuantity,
+                notes: sellNotes,
+                date: new Date().toISOString()
+            };
+            sales.push(newSale);
+
+            renderInventory();
+            updateStats();
+            renderRecentSales();
+            saveInventoryData();
+            showNotification(`Sold ${sellQuantity} x ${item.name}!`);
+            closeSellItemModal();
+        });
+
+        // Delete Item Function
+        function deleteItem(itemId) {
+            if (confirm("Are you sure you want to delete this item? This action cannot be undone.")) {
+                inventory = inventory.filter(item => item.id !== itemId);
+                renderInventory();
                 updateStats();
-                closeSalesHistoryModal();
-                showNotification('Sales history cleared.', 'success');
+                saveInventoryData();
+                showNotification('Item deleted successfully.', true);
             }
         }
 
-        // Print sales report
-        function printSalesReport() {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = `
-                <h2>Inventory Report</h2>
-                <p>Generated on: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                <p>Total Items: ${inventory.length}</p>
-                <p>Total Quantity: ${inventory.reduce((sum, item) => sum + item.quantity, 0)}</p>
-                <p>Low Stock Items: ${inventory.filter(item => item.quantity <= LOW_STOCK_THRESHOLD).length}</p>
-                <br>
-                <h3>Current Inventory</h3>
-                <table class="print-table">
-                    <thead>
-                        <tr>
-                            <th>Item Name</th>
-                            <th>Quantity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${inventory.map(item => `
-                            <tr>
-                                <td>${item.name}</td>
-                                <td>${item.quantity}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <br>
-                <h3>Sales History</h3>
-                <table class="print-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Item</th>
-                            <th>Quantity Sold</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${sales.map(sale => `
-                            <tr>
-                                <td>${new Date(sale.date).toLocaleDateString()}</td>
-                                <td>${sale.item}</td>
-                                <td>${sale.quantity}</td>
-                                <td>${sale.notes}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            
-            printSection.innerHTML = tempDiv.innerHTML;
-            window.print();
-            printSection.innerHTML = ''; // Clear after printing
+        // Clear Sales History Function
+        function clearSalesHistory() {
+            if (confirm("Are you sure you want to clear ALL sales history?")) {
+                sales = [];
+                renderRecentSales();
+                renderSalesHistory();
+                updateStats();
+                saveInventoryData();
+                showNotification('Sales history cleared.', true);
+            }
         }
 
-        // Print sales history from modal
-        function printSalesHistory() {
-            const originalModalContent = salesHistoryModal.innerHTML;
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = `
-                <h2>Sales History Report</h2>
-                <p>Generated on: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                <table class="print-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Item</th>
-                            <th>Quantity Sold</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${sales.map(sale => `
-                            <tr>
-                                <td>${new Date(sale.date).toLocaleDateString()}</td>
-                                <td>${sale.item}</td>
-                                <td>${sale.quantity}</td>
-                                <td>${sale.notes}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            
-            printSection.innerHTML = tempDiv.innerHTML;
-            window.print();
-            printSection.innerHTML = '';
-        }
-
-        // Reset all inventory data
+        // Reset Inventory Function
         function resetInventory() {
-            if (confirm("Are you sure you want to reset all inventory and sales data? This action cannot be undone.")) {
-                localStorage.clear();
+            if (confirm("WARNING: This will clear ALL inventory and sales data. Are you absolutely sure?")) {
                 inventory = [];
                 sales = [];
+                nextItemId = 1;
+                localStorage.clear();
                 renderInventory();
-                renderRecentSales();
                 updateStats();
-                showNotification('All data has been reset!', 'success');
+                renderRecentSales();
+                showNotification('Inventory and data reset complete.', true);
+                // Force a reload to show the login screen cleanly (optional, but robust)
+                location.reload(); 
             }
         }
 
-        // Call the main function to start the app
+        // Print Report Function
+        function printSalesReport() {
+            const date = new Date().toLocaleDateString();
+            
+            let inventoryHtml = '<h3>Current Inventory Report</h3>';
+            if (inventory.length > 0) {
+                inventoryHtml += '<table class="print-table"><thead><tr><th>ID</th><th>Name</th><th>Quantity</th></tr></thead><tbody>';
+                inventory.forEach(item => {
+                    inventoryHtml += `<tr><td>${item.id}</td><td>${item.name}</td><td>${item.quantity}</td></tr>`;
+                });
+                inventoryHtml += '</tbody></table>';
+            } else {
+                inventoryHtml += '<p>No items in inventory.</p>';
+            }
+
+            const totalQuantity = inventory.reduce((sum, item) => sum + item.quantity, 0);
+            const lowStockItems = inventory.filter(item => item.quantity > 0 && item.quantity <= LOW_STOCK_THRESHOLD).length;
+            const totalSales = sales.reduce((sum, sale) => sum + sale.quantity, 0);
+
+            const statsHtml = `
+                <div style="margin-top: 20px;">
+                    <h3>Summary Statistics</h3>
+                    <p><strong>Date Generated:</strong> ${date}</p>
+                    <p><strong>Total Unique Items:</strong> ${inventory.length}</p>
+                    <p><strong>Total Stock Quantity:</strong> ${totalQuantity}</p>
+                    <p><strong>Low Stock Alerts:</strong> ${lowStockItems}</p>
+                    <p><strong>Total Sales (All Time):</strong> ${totalSales}</p>
+                </div>
+            `;
+            
+            printSection.innerHTML = `
+                <h1 style="text-align: center; margin-bottom: 20px;">Storehouse Inventory Report</h1>
+                ${statsHtml}
+                ${inventoryHtml}
+            `;
+            
+            // The CSS @media print block handles visibility.
+            window.print();
+        }
+
+        // Print Sales History
+        function printSalesHistory() {
+            const date = new Date().toLocaleDateString();
+            
+            let salesHtml = `
+                <h1 style="text-align: center; margin-bottom: 20px;">Storehouse Sales History Report</h1>
+                <p><strong>Date Generated:</strong> ${date}</p>
+                <p><strong>Total Sales Recorded:</strong> ${sales.length}</p>
+            `;
+
+            if (sales.length > 0) {
+                salesHtml += '<table class="print-table" style="margin-top: 20px;"><thead><tr><th>Date</th><th>Item</th><th>Quantity Sold</th><th>Notes</th></tr></thead><tbody>';
+                sales.slice().reverse().forEach(sale => { // Reverse for newest first
+                    const item = inventory.find(i => i.id === sale.itemId);
+                    const itemName = item ? item.name : 'Unknown Item';
+                    const saleDate = new Date(sale.date).toLocaleDateString() + ' ' + new Date(sale.date).toLocaleTimeString();
+                    salesHtml += `
+                        <tr>
+                            <td>${saleDate}</td>
+                            <td>${itemName}</td>
+                            <td>${sale.quantity}</td>
+                            <td>${sale.notes || '-'}</td>
+                        </tr>
+                    `;
+                });
+                salesHtml += '</tbody></table>';
+            } else {
+                salesHtml += '<p>No sales history to print.</p>';
+            }
+
+            printSection.innerHTML = salesHtml;
+            closeSalesHistoryModal(); // Close the modal so it's not in the print area
+            window.print();
+        }
+
+
+        // Start the application flow
         checkLoginStatus();
     </script>
 </body>
